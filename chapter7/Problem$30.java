@@ -28,7 +28,7 @@ public class Problem$30
 {
     public static void main(String[] args)
     {
-        Scanner scanner = new Scanner(System.in).useLocale(Locale.US);
+        Scanner scanner = new Scanner(System.in);
         System.out.print("Enter the number of values: ");
         int size = scanner.nextInt();
 
