@@ -3,7 +3,7 @@ package chapter_twenty_four;
 
 public class TwoWayLinkedList<E> implements MyList<E>
 {
-    private Node<E> head, tail;
+    public Node<E> head, tail;
     private int size = 0; // Number of elements in the list
 
     /**
@@ -16,6 +16,30 @@ public class TwoWayLinkedList<E> implements MyList<E>
     {
         for (int i = 0; i < objects.length; i++)
             add(objects[i]);
+    }
+
+    public String forwardToString()
+    {
+        String output = "";
+        Node<E> current = head;
+        while (current != null)
+        {
+            output += current.element + " ";
+            current = current.next;
+        }
+        return output;
+    }
+
+    public String backwardToString()
+    {
+        String output = "";
+        Node<E> current = tail;
+        while (current != null)
+        {
+            output += current.element + " ";
+            current = current.previous;
+        }
+        return output;
     }
 
     /**
@@ -296,6 +320,7 @@ public class TwoWayLinkedList<E> implements MyList<E>
         return null;
     }
 
+
     /** Override iterator() defined in Iterable */
     @Override
     public java.util.Iterator<E> iterator()
@@ -346,13 +371,10 @@ public class TwoWayLinkedList<E> implements MyList<E>
         }
 
         @Override
-        public void remove()
-        {
-            // Left as an exercise
-        }
+        public void remove() { }
     }
 
-    private static class Node<E>
+    public static class Node<E>
     {
         E element;
         Node<E> next;
