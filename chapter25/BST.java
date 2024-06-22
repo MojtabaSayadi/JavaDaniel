@@ -1,6 +1,8 @@
 package chapter_twenty_five;
 
 import java.util.ArrayList;
+import java.util.ListIterator;
+import java.util.Stack;
 
 /**
  * Listing 25.4 BST.java
@@ -23,8 +25,8 @@ public class BST<E extends Comparable<E>> implements Tree<E> {
             add(objects[i]);
     }
 
-    @Override
     /** Returns true if the element is in the tree */
+    @Override
     public boolean search(E e)
     {
         TreeNode<E> current = root; // Start from the root
@@ -305,7 +307,8 @@ public class BST<E extends Comparable<E>> implements Tree<E> {
          */
         private void inorder(TreeNode<E> root)
         {
-            if (root == null) return;
+            if (root == null)
+                return;
             inorder(root.left);
             list.add(root.element);
             inorder(root.right);
@@ -412,5 +415,404 @@ public class BST<E extends Comparable<E>> implements Tree<E> {
 
             return Math.max(leftHeight, rightHeight) + 1;
         }
+    }
+
+    public boolean isPerfectBST()
+    {
+        return Math.pow(2, height()) - 1 == size;
+    }
+
+
+    public void inorderWithoutRecursion()
+    {
+        Stack<TreeNode<E>> stack = new Stack<>();
+        TreeNode<E> current = root;
+
+        while (current != null || !stack.isEmpty())
+        {
+            while (current != null)
+            {
+                stack.push(current);
+                current = current.left;
+            }
+            TreeNode<E> top = stack.pop();
+            System.out.print(top.element + " ");
+            current = top.right;
+        }
+    }
+
+
+    public void preorderWithoutRecursion()
+    {
+        if (root == null)
+            return;
+
+        Stack<TreeNode<E>> stack = new Stack<>();
+        stack.push(root);
+        while (!stack.isEmpty())
+        {
+            TreeNode<E> current = stack.pop();
+            System.out.print(current.element + " ");
+
+            if (current.right != null)
+                stack.push(current.right);
+            if (current.left != null)
+                stack.push(current.left);
+        }
+    }
+
+
+    public void postorderWithoutRecursion()
+    {
+        if (root == null)
+            return;
+        Stack<TreeNode<E>> stack1 = new Stack<>();
+        Stack<TreeNode<E>> stack2 = new Stack<>();
+
+        TreeNode<E> current = root;
+        stack1.push(current);
+
+        while (!stack1.isEmpty())
+        {
+            current = stack1.pop();
+            stack2.push(current);
+
+            if (current.left != null)
+                stack1.push(current.left);
+            if (current.right != null)
+                stack1.push(current.right);
+        }
+
+        while (!stack2.isEmpty())
+            System.out.print(stack2.pop().element + " ");
+    }
+
+
+    /** Return the number of leaf nodes */
+    public int getNumberOfLeaves()
+    {
+        int leaves = 0;
+
+        Stack<TreeNode<E>> stack = new Stack<>();
+        TreeNode<E> current = root;
+
+        while (current != null || !stack.isEmpty())
+        {
+            while (current != null)
+            {
+                stack.push(current);
+                current = current.left;
+            }
+            TreeNode<E> top = stack.pop();
+
+            if (isLeaf(top))
+                leaves++;
+
+            current = top.right;
+        }
+
+        return leaves;
+    }
+
+    private boolean isLeaf(TreeNode<E> node)
+    {
+        return node.left == null && node.right == null;
+    }
+
+
+    /** Return the number of nonleaf nodes */
+    public int getNumberOfNonLeaves()
+    {
+        return size - getNumberOfLeaves();
+    }
+
+    public ListIterator<E> bidirectionalIterator()
+    {
+        return new BidirectionalIterator();
+    }
+
+    private class BidirectionalIterator implements ListIterator<E>
+    {
+        // Store the elements in a list
+        private final java.util.ArrayList<E> list =
+                new java.util.ArrayList<>();
+        private int current = 0; // Point to the current element in list
+        private int reverseCurrent;
+
+        public BidirectionalIterator()
+        {
+            inorder(); // Traverse binary tree and store elements in list
+            reverseCurrent = list.size()-1;
+        }
+
+        /**
+         * Inorder traversal from the root
+         */
+        private void inorder()
+        {
+            inorder(root);
+        }
+
+        /**
+         * Inorder traversal from a subtree
+         */
+        private void inorder(TreeNode<E> root)
+        {
+            if (root == null)
+                return;
+            inorder(root.left);
+            list.add(root.element);
+            inorder(root.right);
+        }
+
+
+        @Override
+        public boolean hasNext()
+        {
+            return current < list.size();
+        }
+
+        @Override
+        public E next()
+        {
+            return list.get(current++);
+        }
+
+        @Override
+        public boolean hasPrevious()
+        {
+            return reverseCurrent > -1;
+        }
+
+        @Override
+        public E previous()
+        {
+            return list.get(reverseCurrent--);
+        }
+
+        @Override
+        public int nextIndex()
+        {
+            return current;
+        }
+
+        @Override
+        public int previousIndex()
+        {
+            return reverseCurrent;
+        }
+
+        @Override
+        public void remove()
+        {
+            if (current == 0) // next() has not been called yet
+                throw new IllegalStateException();
+
+            delete(list.get(--current));
+            list.clear(); // Clear the list
+            inorder(); // Rebuild the list
+        }
+
+        @Override
+        public void set(E e)
+        {
+            // next not called yet
+            if (current == 0)
+                throw new IllegalStateException();
+            else
+                list.set(nextIndex(), e);
+
+            // previous not called yet
+            if (reverseCurrent == 0)
+                throw new IllegalStateException();
+            else
+                list.set(previousIndex(), e);
+        }
+
+        @Override
+        public void add(E e)
+        {
+            // next not called yet
+            if (current == 0)
+                throw new IllegalStateException();
+            else
+                list.add(nextIndex(), e);
+
+            // previous not called yet
+            if (reverseCurrent == 0)
+                throw new IllegalStateException();
+            else
+                list.add(previousIndex(), e);
+        }
+    }
+
+    private ArrayList<E> getElements()
+    {
+        ArrayList<E> elements = new ArrayList<>();
+
+        Stack<TreeNode<E>> stack = new Stack<>();
+        TreeNode<E> current = root;
+
+        while (current != null || !stack.isEmpty())
+        {
+            while (current != null)
+            {
+                stack.push(current);
+                current = current.left;
+            }
+            TreeNode<E> top = stack.pop();
+            elements.add(top.element);
+            current = top.right;
+        }
+
+        return elements;
+    }
+
+
+    public boolean equals(BST<E> otherTree)
+    {
+        if (size != otherTree.size())
+            return false;
+        ArrayList<E> tree1Elements = getElements();
+        ArrayList<E> tree2Elements = otherTree.getElements();
+
+        for (int i = 0; i < tree1Elements.size(); i++)
+            if (!tree1Elements.get(i).equals(tree2Elements.get(i)))
+                return false;
+        return true;
+    }
+
+
+    public BST<E> clone()
+    {
+        BST<E> tree = new BST<>();
+        ArrayList<E> elements = getElements();
+        for (E element: elements)
+            tree.add(element);
+        return tree;
+    }
+
+
+    public java.util.Iterator<E> preorderIterator()
+    {
+        return new PreorderIterator();
+    }
+
+    private class PreorderIterator implements java.util.Iterator<E>
+    {
+        private ArrayList<E> list = new ArrayList<>();
+        int current = 0;
+
+        public PreorderIterator()
+        {
+            preorder();
+        }
+
+        private void preorder()
+        {
+            if (root == null)
+                return;
+
+            Stack<TreeNode<E>> stack = new Stack<>();
+            stack.push(root);
+            while (!stack.isEmpty())
+            {
+                TreeNode<E> current = stack.pop();
+                list.add(current.element);
+                if (current.right != null)
+                    stack.push(current.right);
+                if (current.left != null)
+                    stack.push(current.left);
+            }
+        }
+
+        @Override
+        public boolean hasNext()
+        {
+            return current < list.size();
+        }
+
+        @Override
+        public E next()
+        {
+            return list.get(current++);
+        }
+    }
+
+
+    public java.util.Iterator<E> inorderIterator()
+    {
+        return new InorderIterator();
+    }
+
+    public java.util.List<E> inorderList()
+    {
+        ArrayList<E> list = new ArrayList<>();
+        Stack<TreeNode<E>> stack = new Stack<>();
+        TreeNode<E> current = root;
+
+        while (current != null || !stack.isEmpty())
+        {
+            while (current != null)
+            {
+                stack.push(current);
+                current = current.left;
+            }
+            TreeNode<E> top = stack.pop();
+            list.add(top.element);
+            current = top.right;
+        }
+
+        return list;
+    }
+
+    public java.util.List<E> preorderList()
+    {
+        ArrayList<E> list = new ArrayList<>();
+        if (root == null)
+            return list;
+
+        Stack<TreeNode<E>> stack = new Stack<>();
+        stack.push(root);
+        while (!stack.isEmpty())
+        {
+            TreeNode<E> current = stack.pop();
+            list.add(current.element);
+
+            if (current.right != null)
+                stack.push(current.right);
+            if (current.left != null)
+                stack.push(current.left);
+        }
+
+        return list;
+    }
+
+
+    public java.util.List<E> postorderList()
+    {
+        ArrayList<E> list = new ArrayList<>();
+        if (root == null)
+            return list;
+        Stack<TreeNode<E>> stack1 = new Stack<>();
+        Stack<TreeNode<E>> stack2 = new Stack<>();
+
+        TreeNode<E> current = root;
+        stack1.push(current);
+
+        while (!stack1.isEmpty())
+        {
+            current = stack1.pop();
+            stack2.push(current);
+
+            if (current.left != null)
+                stack1.push(current.left);
+            if (current.right != null)
+                stack1.push(current.right);
+        }
+
+        while (!stack2.isEmpty())
+            list.add(stack2.pop().element);
+        return list;
     }
 }
